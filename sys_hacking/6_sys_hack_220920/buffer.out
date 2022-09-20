@@ -1,0 +1,7 @@
+wrtie to stout
+printf by 1902: before fork
+printf by 1902: hi from parent
+printf by 1902: bye
+printf by 1902: before fork
+printf by 1903: hi from child!
+printf by 1903: bye
