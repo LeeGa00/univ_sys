@@ -40,6 +40,8 @@ void funcBIRTHDAY() {
 	if (pipe(p) < 0)
 		perror("pipe error");
 
+	printf("pid_b: %d\n", pid_b);
+
 	if (pid_b == 2){
 		pid_b = fork();
 	}
@@ -58,9 +60,10 @@ void funcBIRTHDAY() {
 		close(p[1]);
 		read(p[0], buf, 19);
 		printf("parent's pid: %d / %s\n", getpid(), buf);
-		wait(NULL);
+		//wait(NULL);
 		//waitpid(pid_b, &status, 0);
 	}
+	pid_b = 0;
 }
 
 int main(void) {
