@@ -8,7 +8,7 @@ int main(void) {
 	char *argv[] = {command_name, NULL};
 	char *command_full_path = "/usr/bin/sh";
 
-	execve(command_full_path, argv, NULL};
+	execve(command_full_path, argv, NULL);
 	
 	return 0;
 

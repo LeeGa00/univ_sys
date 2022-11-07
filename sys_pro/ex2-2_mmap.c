@@ -1,0 +1,122 @@
+// file : ex2-2.c
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <sys/mman.h>
+
+#define ID "20011699"
+#define BIRTHDAY "2001.12.17"
+
+pid_t pid_i, pid_b;
+int *cnt_i, *cnt_b;
+
+void signalHandler(int sig) {
+	if (sig == SIGQUIT)
+		printf("responding process(%d), No, QUIT\n", getpid());
+	else if (sig == SIGTERM) {
+		// kill parent and children!
+		if (pid_i != 2)
+			kill(pid_i, 9);
+		if (pid_b != 2)
+			kill(pid_b, 9);
+		kill(getpid(), 9);
+	}
+}
+
+void funcID() {
+        int p[2];
+        char buf[30] = {'\0'};
+
+        if (pid_i == 2){
+		if(pipe(p) < 0)
+                	perror("pipe error");
+		pid_i = fork();
+	}
+
+	if (pid_i < 0) {
+		printf("fork error\n");
+	}
+	else if (pid_i == 0) {
+		while(1) {
+                        read(p[0], buf, 10);
+                        printf("responding process(%d) / %s\n", getpid(), buf);
+			(*cnt_i)++;
+		}
+	}
+	else {
+                write(p[1], ID, 10);
+		sleep(1);
+		printf("parent check -> cnt : %d\n", *cnt_i);
+	}
+}
+
+void funcBIRTHDAY() {
+	int p[2];
+	char buf[30] = {'\0'};
+
+	if (pid_b == 2 && pipe(p) < 0)
+		perror("pipe error");
+
+	if (pid_b == 2){
+		pid_b = fork();
+	}
+
+	if (pid_b < 0) {
+		printf("fork error\n");
+		
+	}
+	else if (pid_b == 0) {	
+		while(1) {
+			read(p[0], buf, 19);
+			printf("responding process(%d) / %s\n", getpid(), buf);
+			(*cnt_b)++;
+		}
+	}
+	else {
+		write(p[1], "my birthday : 12.17", 19);
+		sleep(1);
+		printf("parent check -> cnt : %d\n", *cnt_b);
+	}
+}
+
+int main(void) {
+	struct sigaction act;
+
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+
+	pid_i = pid_b = 2;
+
+	cnt_i = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE,
+			MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+	cnt_b = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE,
+                        MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	
+	if (cnt_i == MAP_FAILED || cnt_b == MAP_FAILED){
+		perror("mmap() error");
+		exit(1);
+	}
+
+	act.sa_handler = funcID;
+	sigaction(10, &act, NULL);
+
+	act.sa_handler = funcBIRTHDAY;
+	sigaction(12, &act, NULL);
+
+	act.sa_handler = signalHandler;
+	sigaction(3, &act, NULL);
+
+	// if user's input is "KILL", then SIGTERM is sended
+	sigaction(SIGTERM, &act, NULL);
+
+	printf("my pid: %d\n", getpid());
+
+	while(1) {
+		sleep(1);
+	}	
+	return 0;
+}
