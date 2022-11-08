@@ -6,21 +6,17 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
  
-#define FILE "test-1.data"
+#define FILE "test.data"
  
 // create a file and write some data
 void create_data(void) {
 	int fd, i;
-	char buf[5];
-
 	printf("%s\n", __func__);
 
 	fd = open(FILE, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
 
-	for (i = 0; i < 10; i++){
-		sprintf(buf,"%d",i);
-		write(fd, buf, sizeof(int));
-	}
+	for (i = 0; i < 10; i++)
+		write(fd, &i, sizeof(int));
 
 	close(fd);
 }
@@ -28,18 +24,13 @@ void create_data(void) {
 // open the file and read/print the data inside
 void display_data(void) {
 	int fd = 0, data = 0, i;
-	char buf[5];
-
 	printf("%s\n", __func__);
  
 	fd = open(FILE, O_RDONLY);
 
-	for (i = 0; i < 10; i++) {
-		if (read(fd, buf, sizeof(int)) == 4){
-			data = atoi(buf);
+	for (i = 0; i < 10; i++)
+		if (read(fd, &data, sizeof(int)) == 4)
 			printf("%4d", data);
-		}
-	}
 
 	puts("");
 
@@ -49,26 +40,20 @@ void display_data(void) {
 // open the file and change the data inside
 void change_data(void) {
 	int fd, data;
-	int num = 0;
-	char buf[5];
 
 	fd = open(FILE, O_RDWR);
-	read(fd, buf, sizeof(int));
+	read(fd, &data, sizeof(int));
 
-	data = atoi(buf);
 	data += 100;
-	sprintf(buf, "%d", data);
 
-
-	write(fd, &buf, sizeof(int));
+	write(fd, &data, sizeof(int));
 	close(fd);
 }
-
+ 
 // now we use memory mapping to map the file into memory
 void mmap_data(void) {
 	int *mapped = NULL;
 	int fd;
-	char buf[5];
 	struct stat finfo;
  
 	fd = open(FILE, O_RDWR);
@@ -86,9 +71,9 @@ void mmap_data(void) {
 	}
  
 	// we save some data into the memory mapped area
-	sprintf(mapped[1],"%d", atoi(mapped[1]) + 100);
-	mapped[2] = atoi(mapped[2]) + 200;
-	mapped[3] = atoi(mapped[3]) + 300;
+	mapped[1] += 100;
+	mapped[2] += 200;
+	mapped[3] += 300;
  
 	// use msync() to write changes to the file on the disk
 	// MS_ASYNC indicates the memory mapping area is synced with kernel buffer cache
