@@ -47,5 +47,8 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+	munmap(buf, finfo.st_size);
+	close(fd);
+
 	exit(EXIT_SUCCESS); 
 }

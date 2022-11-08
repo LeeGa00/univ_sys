@@ -1,0 +1,1 @@
+ 22:57:52 This code creates a file, creates a memory map, stores data into the file, and writes the data to the disk using msync() 22:57:54 This code creates a file, creates a memory map, stores data into the file, and writes the data to the disk using msync()
